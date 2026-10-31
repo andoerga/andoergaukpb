@@ -1,0 +1,49 @@
+#panel-login {
+	margin-top: 30px;
+}
+
+.soal label {
+	margin-left: 15px;
+}
+
+#nav-container {
+	margin-top: 20px;
+}
+
+#index-soal .col-xs-2:nth-child(5n+1) {
+	clear: left;
+}
+#index-soal .btn-jump {
+	margin-bottom: 10px;
+}
+#time-left.danger {
+	color: red;
+}
+
+.list-group-item.done {
+	background-color: #dff0d8;
+	color: #3c763d;
+	border-color: #d6e9c6;
+}
+.col-jawaban {
+	margin-top: 20px;
+}
+.col-jawaban label {
+	font-weight: normal;
+}
+.jawaban-soal {
+	margin-left: -17px !Important;
+}
+
+
+.change-mode.size-normal {
+	font-size: 14px;
+}
+.change-mode.size-large {
+	font-size: 18px;
+}
+
+/* Large Mode */
+body.large-mode {
+	font-size: 18px;
+}
