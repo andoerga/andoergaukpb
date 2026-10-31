@@ -29,7 +29,7 @@ class Main extends CI_Controller {
 	
 	public function __construct(){
 		parent::__construct();
-		$settingPath = FCPATH . "../application/config/_setting.json";
+		$settingPath = FCPATH . "../_setting.json";
 		$setting = file_get_contents($settingPath);
 		$setting = json_decode($setting, false);
 		$this->waktuMulai = strtotime($setting->Ujian->Mulai);
@@ -79,7 +79,9 @@ class Main extends CI_Controller {
 		if(!$this->is_login()){
 			redirect(site_url('login'));
 		}
-		
+		$batasAwalWaktu = $this->waktuMulai;
+		$batasAkhirWaktu = $this->waktuSelesai;
+		$now = time();
 		//if(!in_array($this->session->userdata('id'), $this->akunujicoba)){
 			if($batasAwalWaktu > $now){
 				echo '<h1>Ujian belum dibuka</h1>';
@@ -237,6 +239,9 @@ class Main extends CI_Controller {
 		if(!$this->is_login()){
 			redirect(site_url('login'));
 		}
+		$batasAwalWaktu = $this->waktuMulai;
+		$batasAkhirWaktu = $this->waktuSelesai;
+		$now = time();
 		
 		//if(!in_array($this->session->userdata('id'), $this->akunujicoba)){
 			if($batasAwalWaktu > $now){
