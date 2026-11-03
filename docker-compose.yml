@@ -1,0 +1,15 @@
+services:
+  web:
+    image: php:8.2.35-zts-trixie
+    container_name: andoergaukpb
+    ports:
+      - "8080:8000"
+    env_file:
+      - ../.env
+    volumes:
+      - ./:/app
+      - ../_setting.json:/_setting.json
+    working_dir: /app
+    command: >
+      sh -c "docker-php-ext-install mysqli pdo pdo_mysql &&
+             php -S 0.0.0.0:8000 -t /app"

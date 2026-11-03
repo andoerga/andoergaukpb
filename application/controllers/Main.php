@@ -49,7 +49,6 @@ class Main extends CI_Controller {
 	public function index()
 	{
 		if(!$this->is_login()){
-			echo 'not login';
 			redirect(site_url('login'));
 		}
 		$batasAwalWaktu = $this->waktuMulai;
@@ -381,7 +380,6 @@ class Main extends CI_Controller {
 					'tingkat_id' => $login->tingkat_id,
 					'tingkat_name' => $login->tingkat_name,
 					'tipe_registrasi_id' => $login->tipe_registrasi_id,
-					'tipe_pendaftaran' => $login->tipe_pendaftaran,
 					'tipe_registrasi_name' => $login->tipe_registrasi_name
 				);
 				$this->session->set_userdata($session_variable);
