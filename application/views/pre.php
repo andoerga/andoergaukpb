@@ -1,10 +1,7 @@
 <?php
 $now = time();
 $ujianBuka = true;
-if($batasAwalWaktu <= $now && $batasAkhirWaktu >= $now){
-	$ujianBuka = true;
-}
-if($user_id == 489){
+if(getenv('UJIAN_MULAI') <= $now && getenv('UJIAN_SELESAI') >= $now){
 	$ujianBuka = true;
 }
 ?>

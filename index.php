@@ -1,5 +1,8 @@
 <?php
-
+if(getenv('AKSES_DIBUKA') != 1){
+	echo "Akses Ditutup";
+	die();
+}
 /**
  * CodeIgniter
  *

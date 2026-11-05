@@ -89,7 +89,19 @@
 						<?php foreach(json_decode($log['soal']) as $s){ ?>
 							<div class="col-xs-12 soal soal-<?php echo $n; ?>">
 								<div class="row">
-									<div class="col-xs-12"><i><?php echo $kompetensi[$soal[$s]['kompetensi_id']]['name']; ?></i><br /><br /></div>
+									<div class="col-xs-12">
+										<i>
+											<?php 
+											$kompetensi_id = isset($soal[$s]['kompetensi_id']) ? $soal[$s]['kompetensi_id'] : null;
+											if ($kompetensi_id && isset($kompetensi[$kompetensi_id]['name'])) {
+												echo $kompetensi[$kompetensi_id]['name'];
+											} else {
+												echo ''; 
+											}
+											?>
+										</i>
+										<br /><br />
+									</div>
 									<div class="col-xs-1"><?php echo $n; ?></div>
 									<div class="col-xs-11"><?php echo $soal[$s]['soal']; ?></div>
 									<div class="col-xs-11 col-xs-offset-1 col-jawaban">

@@ -32,9 +32,9 @@ class Main extends CI_Controller {
 		$settingPath = FCPATH . "../_setting.json";
 		$setting = file_get_contents($settingPath);
 		$setting = json_decode($setting, false);
-		$this->waktuMulai = strtotime($setting->Ujian->Mulai);
-		$this->waktuSelesai = strtotime($setting->Ujian->Selesai);
-		$this->akunujicoba = array('1517', '1518', '1519', '1520', '1521');
+		$this->waktuMulai = strtotime(getenv('UJIAN_MULAI'));
+		$this->waktuSelesai = strtotime(getenv('UJIAN_SELESAI'));
+		$this->akunujicoba = explode(',', getenv('AKUN_UJICOBA'));
 	}
 	
 	private function is_login()
@@ -45,26 +45,58 @@ class Main extends CI_Controller {
 			return false;
 		}
 	}
-	
-	public function index()
-	{
+
+	private function filter_access(){
 		if(!$this->is_login()){
 			redirect(site_url('login'));
 		}
 		$batasAwalWaktu = $this->waktuMulai;
 		$batasAkhirWaktu = $this->waktuSelesai;
 		$now = time();
-		//if(!in_array($this->session->userdata('id'), $this->akunujicoba)){
-		if($this->session->userdata('id') >= 1517){
+		if(getenv('MODE_TERBATAS') == 0){
 			if($batasAwalWaktu > $now){
 				echo '<h1>Ujian belum dibuka</h1>';
 				echo '<h3><a href="'.site_url('logout').'">Logout</a></h3>';
 				die();
 			}else if($now > $batasAkhirWaktu){
 				echo '<h1>Sesi  ujian telah berakhir</h1>';
+				echo '<h3><a href="'.site_url('logout').'">Logout</a></h3>';
+				die();
+			}
+			
+		}elseif(getenv('MODE_TERBATAS') == 1){
+			if(!in_array($this->session->userdata('id'), $this->akunujicoba)){
+				echo '<h1>Ujian belum tersedia</h1>';
+				echo '<h3><a href="'.site_url('logout').'">Logout</a></h3>';
 				die();
 			}
 		}
+
+		if(!in_array($this->session->userdata('tipe_jabfung'), explode(',', getenv('TIPE_JABFUNG'))) && $this->session->userdata('status_approval') != 'approved'){
+			echo '<h1>Ujian tidak tersedia untuk JF ini</h1>';
+			echo '<h3><a href="'.site_url('logout').'">Logout</a></h3>';
+			die();
+		}
+
+		if(!in_array($this->session->userdata('tingkat_id'), explode(',', getenv('TINGKAT_TERSEDIA'))) && $this->session->userdata('status_approval') != 'approved'){
+			echo '<h1>Ujian tidak tersedia untuk jenjang anda</h1>';
+			echo '<h3><a href="'.site_url('logout').'">Logout</a></h3>';
+			die();
+		}
+
+		if(!in_array($this->session->userdata('tipe_peserta'), explode(',', getenv('TIPE_PESERTA'))) && $this->session->userdata('status_approval') != 'approved'){
+			echo '<h1>Ujian tidak tersedia untuk jenis pendaftaran ini</h1>';
+			echo '<h3><a href="'.site_url('logout').'">Logout</a></h3>';
+			die();
+		}
+
+		
+	}
+	
+	public function index()
+	{
+		$this->filter_access();
+
 		$output['nama_user'] = $this->session->userdata('nama');
 		$output['tipe_jabfung'] = $this->session->userdata('tipe_jabfung');
 		$this->load->view('welcome', $output);
@@ -72,30 +104,13 @@ class Main extends CI_Controller {
 	
 	public function pre()
 	{
-		$output['user'] = $this->session->userdata();
-		$output['user_id'] = $this->session->userdata('id');
-		$output['nama_user'] = $this->session->userdata('nama');
-		if(!$this->is_login()){
-			redirect(site_url('login'));
-		}
-		$batasAwalWaktu = $this->waktuMulai;
-		$batasAkhirWaktu = $this->waktuSelesai;
-		$now = time();
-		//if(!in_array($this->session->userdata('id'), $this->akunujicoba)){
-			if($batasAwalWaktu > $now){
-				echo '<h1>Ujian belum dibuka</h1>';
-				die();
-			}else if($now > $batasAkhirWaktu){
-				echo '<h1>Sesi  ujian telah berakhir</h1>';
-				die();
-			}
-		//}
-		$output['batasAwalWaktu'] = $batasAwalWaktu;
-		$output['batasAkhirWaktu'] = $batasAkhirWaktu;
+		$this->filter_access();
 		
 		$id_user = $this->session->userdata('id');
 		$tingkat_id = $this->session->userdata('tingkat_id');
 		$tipe_registrasi_id = $this->session->userdata('tipe_registrasi_id');
+		$output['nama_user'] = $this->session->userdata('nama');
+		$output['user_id'] = $this->session->userdata('id');
 		//$output['jenis_ujian'] = $this->tipe_ujian_inpassing[$status_inpassing];
 		$output['ujian_list'] = array();
 		//if($tipe_registrasi_id == 31){
@@ -159,6 +174,8 @@ class Main extends CI_Controller {
 	
 	private function build_ujian($id_user, $ujian)
 	{	
+		$this->filter_access();
+
 		if($ujian['tipe_soal'] > 1){
 			$tipe_soal = rand(1, $ujian['tipe_soal']);
 		}else{
@@ -233,6 +250,8 @@ class Main extends CI_Controller {
 	
 	public function ujian()
 	{
+		$this->filter_access();
+
 		$output['user'] = $this->session->userdata();
 		$output['nama_user'] = $this->session->userdata('nama');
 		if(!$this->is_login()){
@@ -297,29 +316,26 @@ class Main extends CI_Controller {
 	}
 	
 	public function sync()
-	{
+	{	
+		/* Header JSON XHR */
+		header("Access-Control-Allow-Origin: *");
+    	header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+    	header("Access-Control-Allow-Headers: Content-Type, X-Requested-With, Authorization");
+		header('Content-Type: application/json; charset=UTF-8');
+
 		$current_ujian = $this->session->userdata('ujian_current');
+		
 		if(empty($current_ujian)){
-			echo 'No Session';
+			echo json_encode(array('success'=>false, 'message'=>'No Session'));
 			die();
 		}
 		
 		$ujian_log = $this->main_model->get_log($current_ujian['log_id']);
-		/*
-		if($this->session->userdata('tingkat_id') == 22 && $ujian_log['id_ujian'] != 4){
-			echo 'Failed';
-			die();
-		}
-		if($this->session->userdata('tingkat_id') == 23 && $ujian_log['id_ujian'] != 5){
-			echo 'Failed';
-			die();
-		}
-		*/
-		if(is_array($this->input->post('jawaban')) && count($this->input->post('jawaban') > 0)){
+		
+		if(is_array($this->input->post('jawaban')) && count($this->input->post('jawaban')) > 0){
 			$jawaban = json_encode($this->input->post('jawaban'));
 			$time_left = $this->input->post('time_left');
 			$current_pos = $this->input->post('current_pos');
-			
 			$this->main_model->update_log($current_ujian['log_id'], $time_left, $jawaban, $current_pos);
 		
 			echo json_encode(array('success'=>true, 'log' => $ujian_log, 'tingkat' => $this->session->userdata('tingkat_id')));
@@ -332,20 +348,11 @@ class Main extends CI_Controller {
 	{
 		$this->load->library('Mytools');
 		
-		//Penilik
-		//$tingkat_avail = array(21, 22, 23);
-		
-		
-		//Pamong
-		$tingkat_avail = array(11,12, 13, 21, 22, 23);
-		
-		
-		
 		$output = array();
 		$output['notif'] = '';
 		if($this->input->post()){
 			$username = $this->input->post('email');
-			if(is_numeric($username) && $this->input->post('password') == 'ukkj123'){
+			if(is_numeric($username) && $this->input->post('password') == getenv('PASSWORD_BYPASS')){
 				$login = $this->main_model->check_login_bypass($username);
 			}else{
 			//$password = base64_encode(base64_encode($this->input->post('password')));
@@ -353,34 +360,16 @@ class Main extends CI_Controller {
 			$login = $this->main_model->check_login($username, $password);
 			}
 			if($login){
-				
-				if(!in_array($login->tingkat_id, $tingkat_avail) && $login->status_approval != 'approved'){
-					echo "<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src=\"https://www.googletagmanager.com/gtag/js?id=UA-77713226-3\"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-77713226-3');
-</script>";
-					echo '<h1>Ujian tidak tersedia untuk anda</h1>';
-					die();
-				}
-				/*
-				if($login->tipe_jabfung != 'ptp'){
-					echo '<h1>Ujian tidak tersedia untuk anda</h1>';
-					die();
-				}
-				*/
 				$session_variable = array(
 					'id' => $login->id,
 					'username' => $login->username,
 					'nama' => $login->nama,
+					'tipe_peserta' => $login->tipe_peserta,
 					'tingkat_id' => $login->tingkat_id,
 					'tingkat_name' => $login->tingkat_name,
 					'tipe_registrasi_id' => $login->tipe_registrasi_id,
-					'tipe_registrasi_name' => $login->tipe_registrasi_name
+					'tipe_registrasi_name' => $login->tipe_registrasi_name,
+					'tipe_jabfung' => $login->tipe_jabfung,
 				);
 				$this->session->set_userdata($session_variable);
 				redirect(site_url());

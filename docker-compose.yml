@@ -1,15 +1,23 @@
 services:
   web:
-    image: php:8.2.35-zts-trixie
+    image: andoerga/andoergaukpb:apache
+
     container_name: andoergaukpb
+
     ports:
-      - "8080:8000"
+      - "8080:80"
+
     env_file:
       - ../.env
+
+    environment:
+      - TZ=Asia/Jakarta
+
     volumes:
-      - ./:/app
-      - ../_setting.json:/_setting.json
-    working_dir: /app
-    command: >
-      sh -c "docker-php-ext-install mysqli pdo pdo_mysql &&
-             php -S 0.0.0.0:8000 -t /app"
+      - ./:/var/www/html
+      - ../_setting.json:/var/www/_setting.json
+      - C:/xampp/htdocs/andoergaukpb-storage/assets:/var/www/html/assets
+      - C:/xampp/htdocs/andoergaukpb-storage/uploads:/var/www/html/uploads
+      - ../.env:/var/www/html/.env
+
+    restart: unless-stopped

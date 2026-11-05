@@ -9,7 +9,7 @@ class main_model extends CI_Model {
 	}
 	
 	public function check_login($username, $password){
-		$this->db->select('id, username, nama, nip, tingkat_id, status_approval, tipe_peserta, tipe_registrasi_id, tingkat_name, tipe_registrasi_name');
+		$this->db->select('id, username, nama, nip, tingkat_id, status_approval, tipe_peserta, tipe_registrasi_id, tingkat_name, tipe_registrasi_name, tipe_jabfung');
 		$this->db->where('username', $username);
 		$this->db->where('password', $password);
 		$this->db->where_in('status_approval', array('approved', 'perbaikan'));
@@ -19,7 +19,7 @@ class main_model extends CI_Model {
 	}
 	
 	public function check_login_bypass($nip){
-		$this->db->select('id, username, nama, nip, tingkat_id, status_approval, tipe_peserta, tipe_registrasi_id, tingkat_name, tipe_registrasi_name');
+		$this->db->select('id, username, nama, nip, tingkat_id, status_approval, tipe_peserta, tipe_registrasi_id, tingkat_name, tipe_registrasi_name, tipe_jabfung');
 		$this->db->where('nip', $nip);
 		$this->db->where_in('status_approval', array('approved', 'perbaikan'));
 		$query = $this->db->get('v_peserta');
